@@ -2,13 +2,13 @@
 
 char int2bin(int a) {
 	int i;
-	char ipbuf[33];
-	ipbuf[33] = '\0';
-    for (i = 31; i >= 0; i--) {
+	char ipbuf[IPBUFSIZE];
+	ipbuf[IPBUFSIZE] = '\0';
+    for (i = IPBUFSIZE - 1; i >= 0; i--) {
         ipbuf[i] = (a & 1) + '0';
         a >>= 1;
     }
-    return ipbuf[33];
+    return ipbuf[IPBUFSIZE];
 }
 
 int parse_ip(char *buf, struct myip *ip) {
