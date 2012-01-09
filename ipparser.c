@@ -1,14 +1,14 @@
 #include "ipparser.h"
 
-char int2bin(int a) {
+char *int2bin(int a) {
 	int i;
-	char ipbuf[IPBUFSIZE];
+	static char ipbuf[IPBUFSIZE];
 	ipbuf[IPBUFSIZE] = '\0';
     for (i = IPBUFSIZE - 1; i >= 0; i--) {
         ipbuf[i] = (a & 1) + '0';
         a >>= 1;
     }
-    return ipbuf[IPBUFSIZE];
+    return ipbuf;
 }
 
 int parse_ip(char *buf, struct myip *ip) {
@@ -38,7 +38,7 @@ int parse_ip(char *buf, struct myip *ip) {
 				ip->mask.s_addr = htonl(ip->mask.s_addr);
 			}
 			printf("Mask: %d\n", ip->mask.s_addr);
-//			printf("Mask(bin): %s\n", int2bin((int) ip->mask.s_addr));
+			printf("Mask(bin): %s\n", int2bin((int) ip->mask.s_addr));
 		}
 		// Parse the IP portion
 		s = NULL;
@@ -63,46 +63,43 @@ int parse_ip(char *buf, struct myip *ip) {
 			return 4;
 		}
 		printf("IP: %d\n", ip->net.s_addr);
-// Print it in binary
-//		ipbuf[32] = '\0';
-//		int2bin((int) ip.net.s_addr, ipbuf, 32);
-//		printf("Mask(bin): %s\n", ipbuf);
+		printf("Mask(bin): %s\n", int2bin((int) ip->net.s_addr));
 		printf("--------------------------------\n");
 	
 }
 
-int parse_file() {
+int parse_file(struct myip *ipa) {
 	FILE* fp;
-	char buf[1024];
-	char *a, *b;
+	char *ip, *b;
 	int count = 0;
-	a = malloc(33);
-	b = a;
+	ip = malloc(IPBUFSIZE);
+	b = malloc(1024);
+	
 	if ((fp = fopen(CONF,"rt")) == NULL) {
 		fprintf(stderr,"Error opening file: " CONF "\n");
 		return -1;
 	}
 	/* Read into the buffer contents within the file stream */
-	while(fgets(buf, 1024, fp) != NULL) {
-		b = buf;
-		memset(a, '\0', 33);
+	while(fgets(b, 1024, fp) != NULL) {
+		memset(ip, '\0', IPBUFSIZE);
 		count=0;
-		printf("Buf:          %sChar by char: ", buf);
 		while(*b) {
 			if (*b == '\0' || *b == '\r' || *b == '\n')
 				break;
 			if (isdigit(*b) || *b == '.' || *b == '/') {
-				if (count == 32)
+				if (count == IPBUFSIZE)
 					break;
-				printf("%c", *b);
-				*a = *b;
-				*a++;
+				*ip = *b;
+				ip++;
 				count++;
 			}
-			*b++;
+			b++;
 		}
-		printf("\nSt: %s\n-------------------------\n", b);
+		ip = ip - count;
+		printf("St:  %s\n-------------------------\n", ip);
+		parse_ip(ip, ipa);
 	}
+	fclose(fp);
 }
 
 int main() {
@@ -113,6 +110,6 @@ int main() {
 	for(i=0; i<IP_COUNT; i++) {
 		parse_ip(p[i], return_ip);
 	}
-	parse_file();
+	parse_file(return_ip);
 	return 0;
 }
