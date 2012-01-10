@@ -13,7 +13,6 @@ char *int2bin(int a) {
 
 int parse_ip(char *buf, struct myip *ip) {
 		char *s = NULL;
-		char *f = NULL;
 		int ipsize=0;
 		printf("Buf: %s\n", buf);
 		// Check for netmask and parse it
@@ -44,7 +43,6 @@ int parse_ip(char *buf, struct myip *ip) {
 		s = NULL;
 		s = malloc(16);
 		memset(s, '\0', 16); // clear the memory
-		f = s;
 		
 		// copy the IP string
 		while (*buf) {
@@ -52,13 +50,14 @@ int parse_ip(char *buf, struct myip *ip) {
 				break;
 			if (isdigit(*buf) || *buf == '.') {
 				*s = *buf;
-				*buf++;
-				*s++;
+				buf++;
+				s++;
 				ipsize++;
 			}
 		}
+		s = s - ipsize;
 		// convert the IP string into 32bit binary IP
-		if (inet_aton(f, &ip->net) == 0) {
+		if (inet_aton(s, &ip->net) == 0) {
 			printf("Unable to parse the IP\n");
 			return 4;
 		}
